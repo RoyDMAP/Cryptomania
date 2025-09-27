@@ -7,30 +7,34 @@
 
 import Foundation
 
+// A blueprint for storing cryptocurrency price data
 struct CryptoSymbol: Codable, Identifiable {
-    let id = UUID()
-    let symbol: String
-    let last: String
-    let lastBTC: String
-    let lowest: String
-    let highest: String
-    let date: String
-    let dailyChangePercentage: String
-    let sourceExchange: String
+    let id = UUID() // Unique ID for each crypto
+    let symbol: String // The crypto name like "BTC" or "ETH"
+    let last: String // Current price as text
+    let lastBTC: String // Price compared to Bitcoin
+    let lowest: String // Lowest price today
+    let highest: String // Highest price today
+    let date: String // When this data was updated
+    let dailyChangePercentage: String // How much price changed today
+    let sourceExchange: String // Which exchange this data came from
     
+    // Converts the price text to a number we can use in math
     var lastPrice: Double {
         Double(last) ?? 0.0
     }
     
+    // Converts the percentage change text to a number
     var dailyChange: Double {
         Double(dailyChangePercentage) ?? 0.0
     }
     
+    // Tells the app how to read JSON data from the internet
     private enum CodingKeys: String, CodingKey {
         case symbol, last, lastBTC, lowest, highest, date, dailyChangePercentage, sourceExchange
     }
     
-    // Sample data for testing and demo
+    // Fake Bitcoin data for testing the app
     static let sampleBTC = CryptoSymbol(
         symbol: "BTC",
         last: "45000.00",
@@ -42,6 +46,7 @@ struct CryptoSymbol: Codable, Identifiable {
         sourceExchange: "binance"
     )
     
+    // Fake Ethereum data for testing the app
     static let sampleETH = CryptoSymbol(
         symbol: "ETH",
         last: "3200.00",

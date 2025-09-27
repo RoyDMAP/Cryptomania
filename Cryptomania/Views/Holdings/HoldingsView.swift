@@ -8,28 +8,32 @@
 import SwiftUI
 import CoreData
 
+// Screen that shows all your cryptocurrency purchases
 struct HoldingsView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    @EnvironmentObject var cryptoService: CryptoService
+    @Environment(\.managedObjectContext) private var viewContext // Database connection
+    @EnvironmentObject var cryptoService: CryptoService // Gets current prices
     
+    // Gets all holdings from database, newest first
     @FetchRequest(
         entity: NSEntityDescription.entity(forEntityName: "Holding", in: PersistenceController.shared.container.viewContext)!,
         sortDescriptors: [NSSortDescriptor(key: "buyAt", ascending: false)]
     ) private var holdings: FetchedResults<NSManagedObject>
     
-    @State private var showingAddHolding = false
+    @State private var showingAddHolding = false // Controls if add screen is open
     
     var body: some View {
         NavigationView {
             VStack {
+                // Show different content based on whether you have holdings
                 if holdings.isEmpty {
-                    emptyState
+                    emptyState // Show message when no holdings
                 } else {
+                    // Show list of all your holdings
                     List {
                         ForEach(holdings, id: \.objectID) { holding in
                             HoldingRow(holding: holding)
                         }
-                        .onDelete(perform: deleteHolding)
+                        .onDelete(perform: deleteHolding) // Swipe to delete
                     }
                 }
             }
@@ -45,6 +49,7 @@ struct HoldingsView: View {
         }
     }
     
+    // What to show when you don't have any holdings yet
     private var emptyState: some View {
         VStack(spacing: 20) {
             Image(systemName: "briefcase")
@@ -68,13 +73,14 @@ struct HoldingsView: View {
         .padding()
     }
     
+    // Deletes holdings when user swipes to delete
     private func deleteHolding(at offsets: IndexSet) {
         withAnimation {
             let objectsToDelete = offsets.map { holdings[$0] }
             objectsToDelete.forEach(viewContext.delete)
             
             do {
-                try viewContext.save()
+                try viewContext.save() // Save changes to database
             } catch {
                 print("Delete error: \(error)")
             }
@@ -82,12 +88,15 @@ struct HoldingsView: View {
     }
 }
 
+// Creates one row for each cryptocurrency holding
 struct HoldingRow: View {
-    let holding: NSManagedObject
-    @EnvironmentObject var cryptoService: CryptoService
+    let holding: NSManagedObject // The crypto purchase data
+    @EnvironmentObject var cryptoService: CryptoService // Gets current prices
     
     var body: some View {
+        // Horizontal layout with left and right sides
         HStack {
+            // Left side - crypto name and purchase price
             VStack(alignment: .leading, spacing: 2) {
                 Text(holdingSymbol)
                     .font(.headline)
@@ -98,20 +107,25 @@ struct HoldingRow: View {
                     .foregroundColor(.secondary)
             }
             
+            // Pushes content to opposite sides
             Spacer()
             
+            // Right side - current price and profit/loss
             if let currentPrice = cryptoService.getCurrentPrice(for: holdingSymbol) {
                 VStack(alignment: .trailing, spacing: 2) {
+                    // Current market price
                     Text("$\(currentPrice, specifier: "%.2f")")
                         .font(.subheadline)
                         .fontWeight(.medium)
                     
+                    // Calculate and show profit/loss
                     let change = currentPrice - holdingPrice
                     Text("\(change >= 0 ? "+" : "")$\(change, specifier: "%.2f")")
                         .font(.caption)
-                        .foregroundColor(change >= 0 ? .green : .red)
+                        .foregroundColor(change >= 0 ? .green : .red) // Green for profit, red for loss
                 }
             } else {
+                // Show loading spinner if price isn't loaded yet
                 ProgressView()
                     .scaleEffect(0.8)
             }
@@ -119,10 +133,12 @@ struct HoldingRow: View {
         .padding(.vertical, 4)
     }
     
+    // Gets the crypto symbol from database (like "BTC")
     private var holdingSymbol: String {
         return holding.value(forKey: "symbol") as? String ?? "UNKNOWN"
     }
     
+    // Gets the price you paid from database
     private var holdingPrice: Double {
         return holding.value(forKey: "buyPrice") as? Double ?? 0.0
     }

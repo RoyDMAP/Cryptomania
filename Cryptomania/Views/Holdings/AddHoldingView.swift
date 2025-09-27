@@ -8,10 +8,12 @@
 import SwiftUI
 import CoreData
 
+// Screen for adding a new cryptocurrency purchase to your portfolio
 struct AddHoldingView: View {
-    @Environment(\.managedObjectContext) private var viewContext
-    @Environment(\.dismiss) var dismiss
+    @Environment(\.managedObjectContext) private var viewContext // Database connection
+    @Environment(\.dismiss) var dismiss // Function to close this screen
     
+    // Variables to store what the user types
     @State private var symbol = ""
     @State private var quantity = ""
     @State private var buyPrice = ""
@@ -20,18 +22,19 @@ struct AddHoldingView: View {
     @State private var showingAlert = false
     @State private var alertMessage = ""
     
-    // Popular symbols for quick selection
+    // List of common cryptocurrencies for quick selection
     private let popularSymbols = ["BTC", "ETH", "ADA", "SOL", "DOGE", "XRP", "BNB", "MATIC"]
     
     var body: some View {
         NavigationView {
             Form {
+                // Section for choosing which cryptocurrency
                 Section("Cryptocurrency") {
                     TextField("Symbol (e.g., BTC)", text: $symbol)
                         .autocapitalization(.allCharacters)
                         .autocorrectionDisabled()
                     
-                    // Quick symbol selection
+                    // Row of buttons for popular cryptos
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                             ForEach(popularSymbols, id: \.self) { popularSymbol in
@@ -46,6 +49,7 @@ struct AddHoldingView: View {
                     }
                 }
                 
+                // Section for purchase information
                 Section("Purchase Details") {
                     TextField("Quantity", text: $quantity)
                         .keyboardType(.decimalPad)
@@ -56,7 +60,7 @@ struct AddHoldingView: View {
                     DatePicker("Purchase Date", selection: $buyDate, in: ...Date(), displayedComponents: .date)
                 }
                 
-                // Show calculated total investment
+                // Shows total cost calculation if user enters valid numbers
                 if let quantityValue = Double(quantity.trimmingCharacters(in: .whitespacesAndNewlines)),
                    let priceValue = Double(buyPrice.trimmingCharacters(in: .whitespacesAndNewlines)),
                    quantityValue > 0 && priceValue > 0 {
@@ -85,6 +89,7 @@ struct AddHoldingView: View {
                     }
                 }
                 
+                // Section for optional notes
                 Section("Notes (Optional)") {
                     TextField("Add a note about this purchase", text: $note, axis: .vertical)
                         .lineLimit(3...6)
@@ -111,6 +116,7 @@ struct AddHoldingView: View {
         }
     }
     
+    // Checks if all required fields are filled out correctly
     private var isFormValid: Bool {
         let trimmedSymbol = symbol.trimmingCharacters(in: .whitespacesAndNewlines)
         let trimmedQuantity = quantity.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -125,6 +131,7 @@ struct AddHoldingView: View {
         return symbolValid && quantityValid && priceValid
     }
     
+    // Saves the new purchase to the database
     private func saveHolding() {
         guard isFormValid else {
             showError("Please fill in all required fields with valid values")
@@ -132,6 +139,7 @@ struct AddHoldingView: View {
         }
         
         do {
+            // Create a new record in the database
             let entity = NSEntityDescription.entity(forEntityName: "Holding", in: viewContext)
             guard let entity = entity else {
                 showError("Could not find Holding entity")
@@ -140,34 +148,37 @@ struct AddHoldingView: View {
             
             let newHolding = NSManagedObject(entity: entity, insertInto: viewContext)
             
+            // Clean up the user's input
             let trimmedSymbol = symbol.uppercased().trimmingCharacters(in: .whitespacesAndNewlines)
             let parsedQuantity = Double(quantity.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
             let parsedPrice = Double(buyPrice.trimmingCharacters(in: .whitespacesAndNewlines)) ?? 0
             let trimmedNote = note.trimmingCharacters(in: .whitespacesAndNewlines)
             
-            // Set all required values
+            // Save all the information to the database
             newHolding.setValue(trimmedSymbol, forKey: "symbol")
-            newHolding.setValue(parsedQuantity, forKey: "amount") // Using "amount" to match your Core Data model
+            newHolding.setValue(parsedQuantity, forKey: "amount")
             newHolding.setValue(parsedPrice, forKey: "buyPrice")
             newHolding.setValue(buyDate, forKey: "buyAt")
             
-            // Optional note
+            // Save note only if user wrote something
             if !trimmedNote.isEmpty {
                 newHolding.setValue(trimmedNote, forKey: "note")
             }
             
-            try viewContext.save()
-            dismiss()
+            try viewContext.save() // Actually save to database
+            dismiss() // Close this screen
         } catch {
             showError("Failed to save holding: \(error.localizedDescription)")
         }
     }
     
+    // Shows an error message to the user
     private func showError(_ message: String) {
         alertMessage = message
         showingAlert = true
     }
 }
+
 #Preview {
     AddHoldingView()
         .environment(\.managedObjectContext, PersistenceController.preview.container.viewContext)

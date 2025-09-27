@@ -8,30 +8,33 @@
 import Foundation
 
 @MainActor
+// Manages getting cryptocurrency prices from the internet
 class CryptoService: ObservableObject {
-    @Published var symbols: [String: CryptoSymbol] = [:]
-    @Published var isLoading = false
-    @Published var errorMessage: String?
-    @Published var lastUpdated: Date?
+    @Published var symbols: [String: CryptoSymbol] = [:] // Stores all the crypto data
+    @Published var isLoading = false // Shows if we're currently getting new prices
+    @Published var errorMessage: String? // Stores any error messages
+    @Published var lastUpdated: Date? // When we last got new prices
     
+    // Gets current prices for a list of cryptocurrencies
     func fetchPrices(for symbolsList: [String]) async {
-        guard !symbolsList.isEmpty else { return }
+        guard !symbolsList.isEmpty else { return } // Don't do anything if list is empty
         
-        isLoading = true
-        errorMessage = nil
+        isLoading = true // Show that we're loading
+        errorMessage = nil // Clear any old error messages
         
-        // Simulate network delay
+        // Wait 1 second to simulate internet delay
         try? await Task.sleep(nanoseconds: 1_000_000_000)
         
-        var newSymbols: [String: CryptoSymbol] = [:]
-        let samples = [CryptoSymbol.sampleBTC, CryptoSymbol.sampleETH]
+        var newSymbols: [String: CryptoSymbol] = [:] // Temporary storage for new data
+        let samples = [CryptoSymbol.sampleBTC, CryptoSymbol.sampleETH] // Fake data to use
         
+        // Go through each crypto symbol we need prices for
         for symbolName in symbolsList {
             if let sample = samples.first(where: { $0.symbol == symbolName }) {
-                // Use predefined sample data for known symbols
+                // Use fake data for BTC and ETH
                 newSymbols[symbolName] = sample
             } else {
-                // Generate random demo data for unknown symbols
+                // Create random fake data for other cryptocurrencies
                 newSymbols[symbolName] = CryptoSymbol(
                     symbol: symbolName,
                     last: String(format: "%.2f", Double.random(in: 0.1...1000)),
@@ -45,11 +48,12 @@ class CryptoService: ObservableObject {
             }
         }
         
-        self.symbols = newSymbols
-        self.lastUpdated = Date()
-        self.isLoading = false
+        self.symbols = newSymbols // Save all the new price data
+        self.lastUpdated = Date() // Record when we updated
+        self.isLoading = false // Stop showing loading indicator
     }
     
+    // Gets the current price for one specific cryptocurrency
     func getCurrentPrice(for symbol: String) -> Double? {
         return symbols[symbol]?.lastPrice
     }
