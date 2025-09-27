@@ -57,3 +57,7 @@ struct WatchlistRowView: View {
         .padding(.vertical, 4)
     }
 }
+#Preview {
+    WatchlistRowView(symbol: "BTC")
+        .environmentObject(CryptoService())
+}

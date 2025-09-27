@@ -13,7 +13,17 @@ struct AddSymbolView: View {
     @State private var newSymbol = ""
     @State private var showingError = false
     
-    private let popularSymbols = ["BTC", "ETH", "ADA", "SOL", "DOGE", "XRP"]
+    // Expanded list of popular cryptocurrencies
+    private let popularSymbols = [
+        // Major cryptocurrencies
+        "BTC", "ETH", "BNB", "XRP", "ADA", "SOL", 
+        "DOT", "DOGE", "AVAX", "SHIB", "MATIC", "LTC",
+        // DeFi & Popular Altcoins  
+        "UNI", "LINK", "ATOM", "AAVE", "ALGO", "VET",
+        "SAND", "MANA", "CRV", "SUSHI", "COMP", "MKR",
+        // Additional popular tokens
+        "FIL", "XLM", "BCH", "ETC", "XMR", "THETA"
+    ]
     
     var body: some View {
         NavigationView {
@@ -24,7 +34,7 @@ struct AddSymbolView: View {
                         .autocorrectionDisabled()
                 }
                 
-                Section("Popular") {
+                Section("Popular Cryptocurrencies") {
                     LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 8) {
                         ForEach(availableSymbols, id: \.self) { symbol in
                             Button(symbol) {
@@ -38,8 +48,40 @@ struct AddSymbolView: View {
                 }
                 
                 Section("Status") {
-                    Text("Watchlist: \(watchlistManager.watchlist.count)/4")
-                        .foregroundColor(.secondary)
+                    HStack {
+                        Text("Watchlist: \(watchlistManager.watchlist.count)/10")
+                            .foregroundColor(.secondary)
+                        
+                        Spacer()
+                        
+                        if watchlistManager.canAddMore() {
+                            Text("\(10 - watchlistManager.watchlist.count) slots remaining")
+                                .font(.caption)
+                                .foregroundColor(.blue)
+                        } else {
+                            Text("Watchlist full")
+                                .font(.caption)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                }
+                
+                // Optional: Add a section showing current watchlist
+                if !watchlistManager.watchlist.isEmpty {
+                    Section("Current Watchlist") {
+                        ForEach(watchlistManager.watchlist, id: \.self) { symbol in
+                            HStack {
+                                Text(symbol)
+                                    .font(.headline)
+                                Spacer()
+                                Button("Remove") {
+                                    watchlistManager.removeFromWatchlist(symbol)
+                                }
+                                .font(.caption)
+                                .foregroundColor(.red)
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle("Add Symbol")

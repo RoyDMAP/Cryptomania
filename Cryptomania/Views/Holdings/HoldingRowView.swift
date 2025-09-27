@@ -49,3 +49,6 @@ struct HoldingRowView: View {
         .padding(.vertical, 4)
     }
 }
+#Preview {
+    Text("HoldingRowView Preview")
+}

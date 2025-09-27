@@ -16,10 +16,12 @@ struct HoldingsDocument: FileDocument {
     
     var holdings: [ExportHolding]
     
+    // Creates a new empty document
     init(holdings: [ExportHolding] = []) {
         self.holdings = holdings
     }
     
+    // Opens and reads a saved file
     init(configuration: ReadConfiguration) throws {
         guard let data = configuration.file.regularFileContents else {
             throw CocoaError(.fileReadCorruptFile)
@@ -30,6 +32,7 @@ struct HoldingsDocument: FileDocument {
         holdings = try decoder.decode([ExportHolding].self, from: data)
     }
     
+    // Saves the document to a file
     func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
         let encoder = JSONEncoder()
         encoder.outputFormatting = [.prettyPrinted, .sortedKeys]
@@ -39,7 +42,7 @@ struct HoldingsDocument: FileDocument {
         return FileWrapper(regularFileWithContents: data)
     }
     
-    // Create document from Core Data holdings
+    // Converts your app data into a file format
     static func from(_ holdings: [Holding], with prices: [String: Double]) -> HoldingsDocument {
         let currentTime = ISO8601DateFormatter().string(from: Date())
         
@@ -65,7 +68,7 @@ struct HoldingsDocument: FileDocument {
         return HoldingsDocument(holdings: exportData)
     }
     
-    // Basic validation
+    // Checks if the data is good before saving
     var isValid: Bool {
         return !holdings.isEmpty && holdings.allSatisfy { holding in
             !holding.symbol.isEmpty &&
@@ -75,7 +78,7 @@ struct HoldingsDocument: FileDocument {
         }
     }
     
-    // Summary info
+    // Creates a text summary of what's in the file
     var summary: String {
         let count = holdings.count
         let symbols = Set(holdings.map { $0.symbol }).sorted().joined(separator: ", ")

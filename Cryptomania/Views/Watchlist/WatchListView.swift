@@ -31,8 +31,17 @@ struct WatchlistView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Add") {
+                    Button(action: {
                         showingAddSymbol = true
+                    }) {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(width: 32, height: 32)
+                            .background(
+                                Circle()
+                                    .fill(watchlistManager.canAddMore() ? Color.blue : Color.gray)
+                            )
                     }
                     .disabled(!watchlistManager.canAddMore())
                 }
@@ -58,7 +67,7 @@ struct WatchlistView: View {
                 .font(.title2)
                 .fontWeight(.semibold)
             
-            Text("Track up to 4 cryptocurrency prices and monitor their performance")
+            Text("Track up to 10 cryptocurrency prices and monitor their performance")
                 .font(.body)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)

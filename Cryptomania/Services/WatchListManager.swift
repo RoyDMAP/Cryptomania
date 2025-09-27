@@ -11,7 +11,7 @@ class WatchlistManager: ObservableObject {
     @Published var watchlist: [String] = []
     @Published var errorMessage: String?
     
-    private let maxWatchlistSize = 4
+    private let maxWatchlistSize = 10
     private let userDefaultsKey = "crypto_watchlist"
     
     init() {
